@@ -3,8 +3,282 @@
 <head>
   <meta charset="UTF-8" />
   <title>Emojigotchi - Versão Web (Emoji)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  #sleep-label,body{font-family:sans-serif}#pet,#speech-bubble{box-sizing:border-box}#panel-toggle:hover,#status-popup{background:#FFF}#debug-panel,#pet-menu,#sleep-label,#speech-bubble,#status-popup{display:none;position:fixed}#debug-panel,#panel-toggle,#pet,#pet-menu,#sleep-label,#speech-bubble,#status-popup,.platform{position:fixed}body{margin:0;padding:0;height:100%;overflow:hidden;background:#202020}#pet{width:24px;height:24px;background:0 0;bottom:0;left:0;cursor:default;transform:translate(0,0);display:flex;justify-content:center;align-items:center;font-size:18px;line-height:1;text-align:center;user-select:none;z-index:1000}#sleep-label{top:0;left:0;transform:translateX(-50%);pointer-events:none;color:#fff;font-size:12px;text-shadow:0 0 4px #000;animation:1s infinite blink}@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}#pet-menu{background:#333;color:#fff;border-radius:4px;padding:4px;font-size:12px;z-index:1500;box-shadow:0 2px 6px rgba(0,0,0,.5);min-width:140px}#pet-menu button{display:block;width:100%;background:0 0;border:none;color:#fff;padding:4px 8px;text-align:left;cursor:pointer;font-size:12px}#pet-menu button:hover{background:#555}#speech-bubble{max-width:160px;background:#fff;color:#000;font-size:11px;padding:4px 6px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.4);z-index:1400;transform:translate(-50%,-100%);pointer-events:none;white-space:normal;word-wrap:break-word}#speech-bubble::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-5px;border-width:5px;border-style:solid;border-color:#fff transparent transparent}#panel-toggle{top:8px;right:8px;width:32px;height:32px;border-radius:999px;border:none;background:rgba(0,0,0,.7);color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;z-index:1600;box-shadow:0 2px 4px rgba(0,0,0,.6)}#debug-panel,#status-popup,.actions-row button{color:#fff;font-size:11px}#status-popup{top:48px;right:8px;border-radius:8px;padding:8px 10px;min-width:190px;z-index:1550;box-shadow:0 3px 8px rgba(0,0,0,.8)}#status-popup .status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-weight:700;font-size:12px}#status-popup .status-header span{white-space:nowrap}.status-line{display:flex;align-items:center;gap:4px;margin-bottom:3px}.status-name{min-width:58px}.status-bar{flex:1;height:4px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}.status-bar-fill{height:100%;width:0%;background:#4caf50;transition:width .15s linear}#bar-happiness{background:#ffc107}#bar-boredom{background:#2196f3}.actions-row{display:flex;justify-content:space-between;gap:4px;margin-top:6px}.actions-row button{flex:1;border-radius:6px;border:none;background:rgba(255,255,255,.12);cursor:pointer;padding:4px 0;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}.actions-row button:hover{background:rgba(255,255,255,.24)}#debug-panel{top:8px;right:48px;background:rgba(0,0,0,.85);padding:8px;border-radius:6px;z-index:2000;min-width:190px;box-shadow:0 2px 6px rgba(0,0,0,.7)}#debug-panel h4{margin:0 0 4px;font-size:12px}#debug-panel label{display:block;margin:2px 0}#debug-panel input[type=range]{width:100%}#debug-panel button{margin:2px 2px 0 0;font-size:10px;padding:2px 4px;cursor:pointer}#debug-panel .debug-row{margin-bottom:4px}.platform{height:6px;background:#0f0;border-radius:3px;box-shadow:0 0 6px rgba(0,0,0,.6);z-index:500}
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #202020;
+      font-family: sans-serif;
+    }
+
+    /* Pet = 24x24, borda arredondada, agora exibindo EMOJI no centro */
+    #pet {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      bottom: 0px; /* encostado na "taskbar" */
+      left: 0;
+      box-sizing: border-box;
+      cursor: default;
+      transform: translate(0, 0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      line-height: 1;
+      text-align: center;
+      user-select: none;
+      z-index: 1000; /* fica por cima das plataformas */
+    }
+
+    /* Label de sono "...zZz" */
+    #sleep-label {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-50%);
+      pointer-events: none;
+      color: #ffffff;
+      font-size: 12px;
+      font-family: sans-serif;
+      text-shadow: 0 0 4px #000;
+      display: none;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.2; }
+    }
+
+    /* Menu de contexto do pet (botão direito) */
+    #pet-menu {
+      position: fixed;
+      background: #333;
+      color: #fff;
+      border-radius: 4px;
+      padding: 4px;
+      font-size: 12px;
+      display: none;
+      z-index: 1500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      min-width: 140px;
+    }
+
+    #pet-menu button {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 4px 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    #pet-menu button:hover {
+      background: #555;
+    }
+
+    /* Balão de fala */
+    #speech-bubble {
+      position: fixed;
+      max-width: 160px;
+      background: #ffffff;
+      color: #000000;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 1400;
+      transform: translate(-50%, -100%);
+      box-sizing: border-box;
+      pointer-events: none;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    #speech-bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #ffffff transparent transparent transparent;
+    }
+
+    /* Botão para abrir o pop-up (canto superior direito) */
+    #panel-toggle {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: #FFF;
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    #panel-toggle:hover {
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    /* Pop-up de status + ações */
+    #status-popup {
+      position: fixed;
+      top: 48px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #fff;
+      font-size: 11px;
+      min-width: 190px;
+      z-index: 1550;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.8);
+      display: none;
+    }
+
+    #status-popup .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    #status-popup .status-header span {
+      white-space: nowrap;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 3px;
+    }
+
+    .status-name {
+      min-width: 58px;
+    }
+
+    .status-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .status-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #4caf50; /* padrão energia */
+      transition: width 0.15s linear;
+    }
+
+    #bar-happiness {
+      background: #ffc107;
+    }
+
+    #bar-boredom {
+      background: #2196f3;
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .actions-row button {
+      flex: 1;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      cursor: pointer;
+      padding: 4px 0;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .actions-row button:hover {
+      background: rgba(255,255,255,0.24);
+    }
+
+    /* Painel de debug/dev */
+    #debug-panel {
+      position: fixed;
+      top: 8px;
+      right: 48px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #ffffff;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      z-index: 2000;
+      min-width: 190px;
+      display: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+
+    #debug-panel h4 {
+      margin: 0 0 4px 0;
+      font-size: 12px;
+    }
+
+    #debug-panel label {
+      display: block;
+      margin: 2px 0;
+    }
+
+    #debug-panel input[type="range"] {
+      width: 100%;
+    }
+
+    #debug-panel button {
+      margin: 2px 2px 0 0;
+      font-size: 10px;
+      padding: 2px 4px;
+      cursor: pointer;
+    }
+
+    #debug-panel .debug-row {
+      margin-bottom: 4px;
+    }
+
+    /* Plataformas do modo parkour */
+    .platform {
+      position: fixed;
+      height: 6px;
+      background: lime;
+      border-radius: 3px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6);
+      z-index: 500;
+    }
+  </style>
 </head>
 <body>
 
@@ -91,11 +365,1158 @@
   </div>
 
   <script>
-    const PET_SIZE=24,pet=document.getElementById("pet"),sleepLabel=document.getElementById("sleep-label"),petMenu=document.getElementById("pet-menu"),speechBubble=document.getElementById("speech-bubble"),panelToggle=document.getElementById("panel-toggle"),statusPopup=document.getElementById("status-popup"),statusLevel=document.getElementById("status-level"),statusXp=document.getElementById("status-xp"),barEnergy=document.getElementById("bar-energy"),barHappiness=document.getElementById("bar-happiness"),barBoredom=document.getElementById("bar-boredom"),debugPanelEl=document.getElementById("debug-panel"),DEV_MODE="1"===new URLSearchParams(window.location.search).get("dev"),SLEEP_DELAY=120000,PERSONALITY="random",EMOJIS={sleep:"\uD83D\uDE34",stop:"\uD83D\uDE42",walk:"\uD83D\uDE01",run:"\uD83D\uDE06",bored:"\uD83D\uDE21",play:"\uD83D\uDE00",curious:"\uD83E\uDD28"};let posX=0,velX=3,running=!0,currentState="walk",stateTimer=0,lastTime=null,isSleeping=!1,lastInteractionTime=performance.now(),energy=80,happiness=60,boredom=20,level=1,xp=0;const XP_PER_LEVEL=100;let isActive=!0,visualOffsetX=0,visualOffsetY=0,jumpActive=!1,jumpElapsed=0,jumpDuration=500,jumpAmplitude=10,shakeActive=!1,shakeElapsed=0,shakeDuration=300,shakeAmplitude=2,scaleX=1,scaleY=1,mouseX=null,mouseY=null,lastMouseMoveTime=0,dragging=!1,dragOffsetX=0,playMode=!1,playModeTimer=0,distanceWalked=0;const missions=[{id:1,target:500,done:!1},{id:2,target:2e3,done:!1},{id:3,target:1e4,done:!1}],achievements=[{id:"marathonista",label:"Maratonista",unlocked:!1,check:()=>1e4<=distanceWalked}];let platformMode=!1,platforms=[],currentPlatformIndex=0,platformStayTimer=0;const phrases={click:["Ei!","Opa!","Que foi?","Oi humano!","Hehe!"],sleep:["T\xF4 com sono...","Fui dormir...","Boa noite..."],wake:["Acordei!","J\xE1 t\xF4 de p\xE9!","Voltei!"],feed:["Hmmm, valeu!","Que del\xEDcia!","Tava com fome!"],play:["Uhuu, brincar!","Bora brincar!","Adoro isso!"],modeActive:["Modo ativo ON!","T\xF4 ligado!","Bora se mexer!"],modePassive:["Modo relax...","Vou ficar mais quieto.","Ok, devagar agora."],bored:["T\xF4 entediado...","Brinca comigo?","Que t\xE9dio..."],mission:["uHuuuuUUU!","Tamo ai na atividade!","T\xF4 upandi, vc viu?"],random:["S\xF3 passando pra lembrar que existo.","Oi, ainda a\xED?","Me d\xE1 aten\xE7\xE3o \uD83D\uDE1C"],levelUp:["Subi de n\xEDvel!","Sou outro pet agora!","Mais forte ainda!"],achievement:["Conquista desbloqueada!","Olha eu ficando PRO!","T\xF4 colecionando trof\xE9us!"],medicine:["T\xF4 me sentindo melhor!","Essa foi amarga, mas ajudou.","Acho que estou curado \uD83D\uDE0C"]},phraseIndexByCategory={};let speechTimeoutId=null,lastBoredomSpeech=0;const BOREDOM_SPEECH_INTERVAL=15e3;let lastRandomEventTime=performance.now(),nextRandomEventDelay=3e4;function clamp(a,b,c){return Math.max(b,Math.min(c,a))}function nextPhrase(a){const b=phrases[a];if(!b||0===b.length)return null;const c=phraseIndexByCategory[a]??-1,d=(c+1)%b.length;return phraseIndexByCategory[a]=d,b[d]}function say(a,b=2e3){if(!a)return;const c=pet.getBoundingClientRect(),d=c.left+c.width/2,e=c.top-8;speechBubble.textContent=a,speechBubble.style.left=d+"px",speechBubble.style.top=e+"px",speechBubble.style.display="block",speechTimeoutId&&clearTimeout(speechTimeoutId),speechTimeoutId=setTimeout(()=>{speechBubble.style.display="none"},b)}function sayFromCategory(a,b=2e3){const c=nextPhrase(a);say(c,b)}function updateStatusPanel(){barEnergy&&(barEnergy.style.width=energy+"%",barHappiness.style.width=happiness+"%",barBoredom.style.width=boredom+"%",statusLevel.textContent=level,statusXp.textContent=`${xp} / ${XP_PER_LEVEL} XP`)}function addXp(a){if(!(0>=a)){for(xp+=a,console.log(`XP +${a} (total: ${xp})`);xp>=XP_PER_LEVEL;)xp-=XP_PER_LEVEL,level++,console.log(`⭐ Level up! Novo nível: ${level}`),sayFromCategory("levelUp",2500);updateStatusPanel()}}function checkAchievements(){achievements.forEach(a=>{!a.unlocked&&a.check()&&(a.unlocked=!0,console.log(`🏆 Conquista desbloqueada: ${a.label}`),sayFromCategory("achievement",2500),addXp(30))})}const movementStatesBase=[{name:"stop",minDuration:800,maxDuration:2e3,speed:0},{name:"walk",minDuration:2e3,maxDuration:5e3,speed:1},{name:"run",minDuration:800,maxDuration:2e3,speed:2.5}];function getMovementStatesForPersonality(){const a=JSON.parse(JSON.stringify(movementStatesBase));return"lazy"===PERSONALITY&&(a.find(a=>"run"===a.name).speed=2,a.find(a=>"stop"===a.name).maxDuration=3e3),a}let movementStates=getMovementStatesForPersonality();function getDayPeriod(){const a=new Date().getHours();return 6>a?"dawn":12>a?"morning":18>a?"afternoon":"night"}function getCurrentSleepDelay(){const a=getDayPeriod();return"night"===a?.5*SLEEP_DELAY:"morning"===a?1.2*SLEEP_DELAY:SLEEP_DELAY}function initPosition(){posX=window.innerWidth/2-12,pet.style.bottom="0px",updatePetStyle(),updateEmoji(),movementStates=getMovementStatesForPersonality(),chooseNewState(),lastInteractionTime=performance.now(),lastRandomEventTime=performance.now(),nextRandomEventDelay=randomRange(2e4,45e3),updateStatusPanel(),console.log("Per\xEDodo do dia:",getDayPeriod())}function updatePetStyle(){pet.style.left=posX+"px",pet.style.transform=`translate(${visualOffsetX}px, ${visualOffsetY}px) scale(${scaleX}, ${scaleY})`,isSleeping&&updateSleepLabelPosition()}function updateSleepLabelPosition(){const a=pet.getBoundingClientRect();sleepLabel.style.left=a.left+a.width/2+"px",sleepLabel.style.top=a.top-16+"px"}function randomRange(a,b){return a+Math.random()*(b-a)}function chooseNewState(){movementStates=getMovementStatesForPersonality();let a={stop:1,walk:1,run:1};30>energy&&(a.run*=.3,a.stop+=2),10>energy&&(a.run=0,a.walk*=.3,a.stop+=3),60<boredom&&(a.run+=2,a.walk+=1),70<happiness&&(a.walk+=1,a.run+=1),30>happiness&&(a.stop+=1);const b=getDayPeriod();if("morning"===b?(a.run+=1,a.walk+=.5):"night"===b?(a.stop+=2,a.run*=.5):"dawn"===b&&(a.stop+=1),"agitated"===PERSONALITY)a.run*=1.8,a.stop*=.5;else if("lazy"===PERSONALITY)a.stop*=2,a.run*=.5;else if("random"===PERSONALITY){const b=Math.random();.33>b?a.run+=1:.66>b&&(a.stop+=1)}for(let b in a)a[b]=Math.max(0,a[b]);const c=a.stop+a.walk+a.run;let d=Math.random()*c,e="stop";e=d<a.stop?"stop":d<a.stop+a.walk?"walk":"run";const f=movementStates.find(a=>a.name===e)||movementStates[0];currentState=f.name,stateTimer=randomRange(f.minDuration,f.maxDuration);let g=Math.sign(velX);0===g&&(g=.5>Math.random()?-1:1),velX=g*f.speed}function updatePosition(){const a=window.innerWidth;posX+=velX,0>posX?(posX=0,velX=Math.abs(velX)):posX+PET_SIZE>a&&(posX=a-PET_SIZE,velX=-Math.abs(velX)),updatePetStyle()}function updateEmoji(){return isSleeping?void(pet.textContent=EMOJIS.sleep):70<boredom?void(pet.textContent=EMOJIS.bored):playMode||platformMode?void(pet.textContent=EMOJIS.play):jumpActive||shakeActive?void(pet.textContent=EMOJIS.play):void("stop"===currentState?pet.textContent=EMOJIS.stop:"walk"===currentState?pet.textContent=EMOJIS.walk:"run"===currentState?pet.textContent=EMOJIS.run:pet.textContent=EMOJIS.stop)}function enterSleep(){isSleeping||(isSleeping=!0,sleepLabel.style.display="block",velX=0,jumpActive=!1,shakeActive=!1,visualOffsetX=0,visualOffsetY=0,scaleX=1,scaleY=1,updatePetStyle(),updateEmoji(),currentState="stop",sayFromCategory("sleep",2500))}function exitSleep(){isSleeping&&(isSleeping=!1,sleepLabel.style.display="none",lastInteractionTime=performance.now(),chooseNewState(),updateEmoji(),sayFromCategory("wake",2e3))}function startJump(){jumpActive=!0,jumpElapsed=0,jumpDuration=randomRange(450,700),jumpAmplitude=randomRange(16,28)}function updateJump(a){if(jumpActive){if("run"!==currentState&&!platformMode)return jumpActive=!1,visualOffsetY=0,scaleX=1,void(scaleY=1);if(jumpElapsed+=a,jumpElapsed>=jumpDuration)jumpActive=!1,visualOffsetY=0,scaleX=1,scaleY=1;else{const a=jumpElapsed/jumpDuration,b=Math.sin(Math.PI*a)*jumpAmplitude;visualOffsetY=-b;const c=Math.sin(Math.PI*a);scaleX=1-.15*c,scaleY=1+.15*c}}}function startShake(){shakeActive=!0,shakeElapsed=0,shakeDuration=randomRange(200,450),shakeAmplitude=randomRange(1,3)}function updateShake(a){if(shakeActive){if("stop"!==currentState&&!platformMode)return shakeActive=!1,void(visualOffsetX=0);if(shakeElapsed+=a,shakeElapsed>=shakeDuration)shakeActive=!1,visualOffsetX=0;else{const a=shakeElapsed/shakeDuration,b=Math.sin(10*(a*Math.PI))*shakeAmplitude;visualOffsetX=b}}}function applyCuriosity(){if(!isActive||platformMode)return;if(null===mouseX||null===mouseY)return;const a=performance.now();if(5e3<a-lastMouseMoveTime)return;const b=pet.getBoundingClientRect(),c=b.left+b.width/2,d=b.top+b.height/2,e=mouseX-c,f=mouseY-d,g=128;if(Math.abs(e)<=g&&Math.abs(f)<=g){const a=0<e?1:-1,b=1.2+1.5*(happiness/100);velX=a*b}}function updateMissionsAndPlay(a){const b=Math.abs(velX)*(a/16);if(distanceWalked+=b,missions.forEach(a=>{!a.done&&distanceWalked>=a.target&&(a.done=!0,console.log(`🎯 Missão ${a.id} concluída! Distância alvo: ${a.target}px`),sayFromCategory("mission",2500),addXp(20))}),checkAchievements(),playMode&&!platformMode)if(playModeTimer-=a,0>=playModeTimer)playMode=!1,console.log("\uD83C\uDFAE Modo brincar terminou!");else if("run"!==currentState&&.02>Math.random()){currentState="run";const a=movementStates.find(a=>"run"===a.name);if(a){const b=Math.sign(velX)||(.5>Math.random()?-1:1);velX=b*(a.speed+1)}}}function tryRandomEvent(a){!isActive||platformMode||isSleeping||dragging||playMode||8e3>a-lastInteractionTime||a-lastRandomEventTime<nextRandomEventDelay||(lastRandomEventTime=a,nextRandomEventDelay=randomRange(2e4,45e3),triggerRandomEvent())}function triggerRandomEvent(){const a=Math.random();.25>a?startPlatformMode():.55>a?(startShake(),sayFromCategory("random",2500)):.85>a?(startJump(),sayFromCategory("random",2500)):sayFromCategory("bored",2500)}function createPlatforms(){clearPlatforms(),platforms=[];const a=window.innerWidth,b=5;for(let c=0;c<b;c++){const d=a/(b+1)*(c+1)-30,e=0==c%2?20:80;platforms.push({x:d,yBottom:40+e,width:60,el:null})}platforms.forEach((a,b)=>{const c=document.createElement("div");c.className="platform",c.dataset.index=b,c.style.left=a.x+"px",c.style.width=a.width+"px",c.style.bottom=a.yBottom+"px",document.body.appendChild(c),a.el=c})}function clearPlatforms(){platforms.forEach(a=>{a.el&&a.el.parentNode&&a.el.parentNode.removeChild(a.el)}),platforms=[]}function movePetToPlatform(a){a&&(posX=a.x+a.width/2-12,pet.style.left=posX+"px",pet.style.bottom=a.yBottom+6+"px",visualOffsetX=0,visualOffsetY=0,scaleX=1,scaleY=1,updateEmoji())}function startPlatformMode(){if(!platformMode)return isSleeping||dragging?void 0:(platformMode=!0,playMode=!1,createPlatforms(),0===platforms.length?void(platformMode=!1):void(currentPlatformIndex=0,movePetToPlatform(platforms[0]),platformStayTimer=2e3,say("Hora do parkour! \uD83C\uDFD7\uFE0F",2200),console.log("\uD83C\uDFD7\uFE0F Modo plataformas iniciado!")))}function updatePlatformMode(a){if(platformMode){if(0===platforms.length)return void endPlatformMode();const b=performance.now()/400;if(visualOffsetY=3*Math.sin(b),updatePetStyle(),platformStayTimer-=a,0>=platformStayTimer){if(currentPlatformIndex++,currentPlatformIndex>=platforms.length)return void endPlatformMode();const a=platforms[currentPlatformIndex];animateJumpToPlatform(a),platformStayTimer=2e3}}}function animateJumpToPlatform(a){function b(i){if(!platformMode)return;const j=Math.min((i-h)/g,1);posX=c+(d-c)*(j*j*(3-2*j)),pet.style.left=posX+"px";const k=Math.sin(j*Math.PI);pet.style.bottom=e+(f-e)*j+30*k+"px",visualOffsetX=0,visualOffsetY=0,scaleX=1,scaleY=1,1>j&&platformMode?requestAnimationFrame(b):platformMode&&movePetToPlatform(a)}if(!platformMode||!a)return;const c=posX,d=a.x+a.width/2-12,e=parseFloat(pet.style.bottom)||0,f=a.yBottom+6,g=550,h=performance.now();requestAnimationFrame(b)}function endPlatformMode(){platformMode=!1,clearPlatforms(),pet.style.bottom="0px",visualOffsetX=0,visualOffsetY=0,scaleX=1,scaleY=1,updatePetStyle(),chooseNewState(),say("Ufa! Que treino! \uD83D\uDCAA",2200),addXp(15),console.log("\uD83C\uDFC1 Modo plataformas finalizado.")}function loop(a){if(running){null===lastTime&&(lastTime=a);const b=a-lastTime;lastTime=a;const c=b/1e3;if(isSleeping||(!platformMode&&0<Math.abs(velX)?(energy-=4*c,boredom-=3*c):!platformMode&&(boredom+=2*c),happiness-=.5*c,energy=clamp(energy,0,100),happiness=clamp(happiness,0,100),boredom=clamp(boredom,0,100)),!isSleeping&&70<boredom&&!platformMode){const a=performance.now();a-lastBoredomSpeech>BOREDOM_SPEECH_INTERVAL&&(lastBoredomSpeech=a,sayFromCategory("bored",2500))}if(platformMode||tryRandomEvent(a),isSleeping||!(a-lastInteractionTime>=getCurrentSleepDelay())||platformMode||enterSleep(),isSleeping){energy=clamp(energy+6*c,0,100),boredom=clamp(boredom-2*c,0,100),happiness=clamp(happiness+1*c,0,100);const b=2*Math.sin(a/600);return visualOffsetX=0,visualOffsetY=-b,scaleX=1,scaleY=1,updatePetStyle(),updateEmoji(),updateStatusPanel(),void requestAnimationFrame(loop)}if(dragging)return updatePetStyle(),updateEmoji(),updateStatusPanel(),void requestAnimationFrame(loop);if(platformMode)return updatePlatformMode(b),updateEmoji(),updateStatusPanel(),void requestAnimationFrame(loop);if(stateTimer-=b,0>=stateTimer&&chooseNewState(),isActive&&"run"===currentState&&!jumpActive){let a=.01*(b/16);70<happiness&&(a*=1.5),Math.random()<a&&startJump()}if(isActive&&"stop"===currentState&&!shakeActive){let a=.01*(b/16);70<happiness&&(a*=1.5),Math.random()<a&&startShake()}applyCuriosity(),isActive||(velX*=.9),visualOffsetX=shakeActive?visualOffsetX:0,jumpActive||(visualOffsetY=0,scaleX=1,scaleY=1),jumpActive?updateJump(b):shakeActive&&updateShake(b),updateMissionsAndPlay(b),.001<Math.abs(velX)?updatePosition():updatePetStyle(),updateEmoji(),updateStatusPanel(),requestAnimationFrame(loop)}}function registerInteraction(){lastInteractionTime=performance.now(),isSleeping&&exitSleep(),happiness=clamp(happiness+5,0,100),boredom=clamp(boredom-5,0,100),addXp(1)}function doPetAction(a){"feed"===a?(energy=clamp(energy+30,0,100),happiness=clamp(happiness+15,0,100),boredom=clamp(boredom-10,0,100),console.log("\uD83C\uDF56 Pet alimentado! Energia:",energy.toFixed(0)),addXp(8),sayFromCategory("feed",2e3)):"play"===a?startPlatformMode():"medicine"===a?(energy=clamp(energy+20,0,100),happiness=clamp(happiness+8,0,100),boredom=clamp(boredom-5,0,100),console.log("\uD83D\uDC8A Rem\xE9dio dado! Energia:",energy.toFixed(0)),addXp(6),sayFromCategory("medicine",2200)):"wake"===a?exitSleep():"toggle-active"==a&&(isActive=!isActive,console.log("Modo",isActive?"Ativo":"Passivo"),sayFromCategory(isActive?"modeActive":"modePassive",2200)),updateStatusPanel()}pet.addEventListener("mouseenter",()=>{registerInteraction()}),pet.addEventListener("mousemove",()=>{registerInteraction()}),pet.addEventListener("click",()=>{if(!dragging&&(registerInteraction(),sayFromCategory("click",1500),!isSleeping&&isActive&&!platformMode))if("run"!==currentState&&.5>Math.random()){currentState="run";const a=movementStates.find(a=>"run"===a.name);if(a){const b=Math.sign(velX)||(.5>Math.random()?-1:1);velX=b*(a.speed+.5)}}else startShake()}),pet.addEventListener("mousedown",a=>{if(0===a.button){dragging=!0,velX=0;const b=pet.getBoundingClientRect();dragOffsetX=a.clientX-b.left,registerInteraction(),a.preventDefault()}}),window.addEventListener("mousemove",a=>{if(mouseX=a.clientX,mouseY=a.clientY,lastMouseMoveTime=performance.now(),dragging){posX=a.clientX-dragOffsetX;const b=window.innerWidth;0>posX&&(posX=0),posX+PET_SIZE>b&&(posX=b-PET_SIZE),updatePetStyle()}}),window.addEventListener("mouseup",()=>{dragging&&(dragging=!1,chooseNewState())}),pet.addEventListener("contextmenu",a=>{a.preventDefault(),petMenu.style.left=a.clientX+"px",petMenu.style.top=a.clientY+"px",petMenu.style.display="block"}),petMenu.addEventListener("click",a=>{const b=a.target.closest("button");if(b){const a=b.dataset.action;registerInteraction(),doPetAction(a),petMenu.style.display="none"}}),panelToggle.addEventListener("click",a=>{a.stopPropagation();const b="block"===statusPopup.style.display;statusPopup.style.display=b?"none":"block"}),statusPopup.addEventListener("click",a=>{const b=a.target.closest("button[data-action]");if(b){const c=b.dataset.action;registerInteraction(),doPetAction(c),a.stopPropagation()}}),window.addEventListener("click",a=>{petMenu.contains(a.target)||a.target===pet||(petMenu.style.display="none"),a.target===panelToggle||statusPopup.contains(a.target)||(statusPopup.style.display="none")}),window.addEventListener("resize",()=>{const a=window.innerWidth;posX+PET_SIZE>a&&(posX=Math.max(0,a-PET_SIZE),updatePetStyle())});function setupDebugPanel(){if(!DEV_MODE||!debugPanelEl)return;debugPanelEl.style.display="block";const a=document.getElementById("debug-energy"),b=document.getElementById("debug-happiness"),c=document.getElementById("debug-boredom"),d=document.getElementById("debug-pause");a&&(a.value=energy,a.addEventListener("input",a=>{energy=+a.target.value,energy=clamp(energy,0,100),updateStatusPanel()})),b&&(b.value=happiness,b.addEventListener("input",a=>{happiness=+a.target.value,happiness=clamp(happiness,0,100),updateStatusPanel()})),c&&(c.value=boredom,c.addEventListener("input",a=>{boredom=+a.target.value,boredom=clamp(boredom,0,100),updateStatusPanel()})),d&&d.addEventListener("change",a=>{a.target.checked?running=!1:!running&&(running=!0,lastTime=null,requestAnimationFrame(loop))}),debugPanelEl.addEventListener("click",a=>{const b=a.target.closest("button[data-debug]");if(b){const a=b.dataset.debug;if("sleep"===a)enterSleep();else if("wake"===a)exitSleep();else if("run"===a){currentState="run";const a=movementStates.find(a=>"run"===a.name);if(a){const b=Math.sign(velX)||(.5>Math.random()?-1:1);velX=b*(a.speed+1)}}else"stop"===a?(currentState="stop",velX=0):"play"===a&&startPlatformMode();updateStatusPanel()}})}initPosition(),setupDebugPanel(),requestAnimationFrame(loop);
+    const PET_SIZE = 24;
+    const pet = document.getElementById('pet');
+    const sleepLabel = document.getElementById('sleep-label');
+    const petMenu = document.getElementById('pet-menu');
+    const speechBubble = document.getElementById('speech-bubble');
+
+    const panelToggle = document.getElementById('panel-toggle');
+    const statusPopup = document.getElementById('status-popup');
+
+    const statusLevel = document.getElementById('status-level');
+    const statusXp = document.getElementById('status-xp');
+    const barEnergy = document.getElementById('bar-energy');
+    const barHappiness = document.getElementById('bar-happiness');
+    const barBoredom = document.getElementById('bar-boredom');
+
+    const debugPanelEl = document.getElementById('debug-panel');
+    const DEV_MODE = new URLSearchParams(window.location.search).get('dev') === '1';
+
+    const SLEEP_DELAY = 2 * 60 * 1000; // base 2 minutos
+    const PERSONALITY = 'random';
+
+    // Emojis por "emoção"/estado
+    const EMOJIS = {
+      sleep:   "😴",
+      stop:    "🙂",
+      walk:    "😁",
+      run:     "😆",
+      bored:   "😡",
+      play:    "😀",
+      curious: "🤨"
+    };
+
+    let posX = 0;
+    let velX = 3;
+    let running = true;
+
+    let currentState = 'walk';
+    let stateTimer = 0;
+    let lastTime = null;
+
+    let isSleeping = false;
+    let lastInteractionTime = performance.now();
+
+    // Humor
+    let energy = 80;
+    let happiness = 60;
+    let boredom = 20;
+
+    // Level / XP / conquistas
+    let level = 1;
+    let xp = 0;
+    const XP_PER_LEVEL = 100;
+
+    let isActive = true;
+
+    // Pulo / tremida + escala
+    let visualOffsetX = 0;
+    let visualOffsetY = 0;
+    let jumpActive = false;
+    let jumpElapsed = 0;
+    let jumpDuration = 500;
+    let jumpAmplitude = 10;
+
+    let shakeActive = false;
+    let shakeElapsed = 0;
+    let shakeDuration = 300;
+    let shakeAmplitude = 2;
+
+    let scaleX = 1;
+    let scaleY = 1;
+
+    // Mouse / curiosidade
+    let mouseX = null;
+    let mouseY = null;
+    let lastMouseMoveTime = 0;
+
+    // Arrastar
+    let dragging = false;
+    let dragOffsetX = 0;
+
+    // Mini-game
+    let playMode = false;
+    let playModeTimer = 0;
+    let distanceWalked = 0;
+    const missions = [
+      { id: 1, target: 500, done: false },
+      { id: 2, target: 2000, done: false },
+      { id: 3, target: 10000, done: false }
+    ];
+
+    const achievements = [
+      {
+        id: 'marathonista',
+        label: 'Maratonista',
+        unlocked: false,
+        check: () => distanceWalked >= 10000
+      }
+    ];
+
+    // Modo plataformas (parkour)
+    let platformMode = false;
+    let platforms = [];
+    let currentPlatformIndex = 0;
+    let platformStayTimer = 0; // ms
+
+    // Frases
+    const phrases = {
+      click: [
+        "Ei!",
+        "Opa!",
+        "Que foi?",
+        "Oi humano!",
+        "Hehe!"
+      ],
+      sleep: [
+        "Tô com sono...",
+        "Fui dormir...",
+        "Boa noite..."
+      ],
+      wake: [
+        "Acordei!",
+        "Já tô de pé!",
+        "Voltei!"
+      ],
+      feed: [
+        "Hmmm, valeu!",
+        "Que delícia!",
+        "Tava com fome!"
+      ],
+      play: [
+        "Uhuu, brincar!",
+        "Bora brincar!",
+        "Adoro isso!"
+      ],
+      modeActive: [
+        "Modo ativo ON!",
+        "Tô ligado!",
+        "Bora se mexer!"
+      ],
+      modePassive: [
+        "Modo relax...",
+        "Vou ficar mais quieto.",
+        "Ok, devagar agora."
+      ],
+      bored: [
+        "Tô entediado...",
+        "Brinca comigo?",
+        "Que tédio..."
+      ],
+      mission: [
+        "uHuuuuUUU!",
+        "Tamo ai na atividade!",
+        "Tô upandi, vc viu?"
+      ],
+      random: [
+        "Só passando pra lembrar que existo.",
+        "Oi, ainda aí?",
+        "Me dá atenção 😜"
+      ],
+      levelUp: [
+        "Subi de nível!",
+        "Sou outro pet agora!",
+        "Mais forte ainda!"
+      ],
+      achievement: [
+        "Conquista desbloqueada!",
+        "Olha eu ficando PRO!",
+        "Tô colecionando troféus!"
+      ],
+      medicine: [
+        "Tô me sentindo melhor!",
+        "Essa foi amarga, mas ajudou.",
+        "Acho que estou curado 😌"
+      ]
+    };
+
+    const phraseIndexByCategory = {};
+    let speechTimeoutId = null;
+    let lastBoredomSpeech = 0;
+    const BOREDOM_SPEECH_INTERVAL = 15000; // 15s entre falas de tédio
+
+    // Eventos aleatórios
+    let lastRandomEventTime = performance.now();
+    let nextRandomEventDelay = 30000; // será randomizado depois
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function nextPhrase(category) {
+      const arr = phrases[category];
+      if (!arr || arr.length === 0) return null;
+      const lastIdx = phraseIndexByCategory[category] ?? -1;
+      const nextIdx = (lastIdx + 1) % arr.length;
+      phraseIndexByCategory[category] = nextIdx;
+      return arr[nextIdx];
+    }
+
+    function say(text, duration = 2000) {
+      if (!text) return;
+
+      const rect = pet.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top - 8;
+
+      speechBubble.textContent = text;
+      speechBubble.style.left = x + 'px';
+      speechBubble.style.top = y + 'px';
+      speechBubble.style.display = 'block';
+
+      if (speechTimeoutId) {
+        clearTimeout(speechTimeoutId);
+      }
+      speechTimeoutId = setTimeout(() => {
+        speechBubble.style.display = 'none';
+      }, duration);
+    }
+
+    function sayFromCategory(category, duration = 2000) {
+      const text = nextPhrase(category);
+      say(text, duration);
+    }
+
+    function updateStatusPanel() {
+      if (!barEnergy) return;
+      barEnergy.style.width = energy + '%';
+      barHappiness.style.width = happiness + '%';
+      barBoredom.style.width = boredom + '%';
+      statusLevel.textContent = level;
+      statusXp.textContent = `${xp} / ${XP_PER_LEVEL} XP`;
+    }
+
+    function addXp(amount) {
+      if (amount <= 0) return;
+      xp += amount;
+      console.log(`XP +${amount} (total: ${xp})`);
+
+      while (xp >= XP_PER_LEVEL) {
+        xp -= XP_PER_LEVEL;
+        level++;
+        console.log(`⭐ Level up! Novo nível: ${level}`);
+        sayFromCategory('levelUp', 2500);
+      }
+      updateStatusPanel();
+    }
+
+    function checkAchievements() {
+      achievements.forEach(ach => {
+        if (!ach.unlocked && ach.check()) {
+          ach.unlocked = true;
+          console.log(`🏆 Conquista desbloqueada: ${ach.label}`);
+          sayFromCategory('achievement', 2500);
+          addXp(30);
+        }
+      });
+    }
+
+    const movementStatesBase = [
+      { name: 'stop', minDuration: 800, maxDuration: 2000, speed: 0 },
+      { name: 'walk', minDuration: 2000, maxDuration: 5000, speed: 1.0 },
+      { name: 'run',  minDuration: 800,  maxDuration: 2000, speed: 2.5 }
+    ];
+
+    function getMovementStatesForPersonality() {
+      const states = JSON.parse(JSON.stringify(movementStatesBase));
+      if (PERSONALITY === 'agitated') {
+        states.find(s => s.name === 'run').speed = 3.5;
+        states.find(s => s.name === 'stop').maxDuration = 1200;
+      } else if (PERSONALITY === 'lazy') {
+        states.find(s => s.name === 'run').speed = 2.0;
+        states.find(s => s.name === 'stop').maxDuration = 3000;
+      }
+      return states;
+    }
+
+    let movementStates = getMovementStatesForPersonality();
+
+    function getDayPeriod() {
+      const h = new Date().getHours();
+      if (h < 6) return 'dawn';
+      if (h < 12) return 'morning';
+      if (h < 18) return 'afternoon';
+      return 'night';
+    }
+
+    function getCurrentSleepDelay() {
+      const period = getDayPeriod();
+      if (period === 'night') {
+        return SLEEP_DELAY * 0.5; // dorme mais rápido à noite
+      }
+      if (period === 'morning') {
+        return SLEEP_DELAY * 1.2; // manhã = mais disposto
+      }
+      return SLEEP_DELAY; // tarde / outros
+    }
+
+    function initPosition() {
+      posX = window.innerWidth / 2 - PET_SIZE / 2;
+      pet.style.bottom = '0px';
+      updatePetStyle();
+      updateEmoji();
+      movementStates = getMovementStatesForPersonality();
+      chooseNewState();
+      lastInteractionTime = performance.now();
+
+      lastRandomEventTime = performance.now();
+      nextRandomEventDelay = randomRange(20000, 45000);
+      updateStatusPanel();
+
+      console.log('Período do dia:', getDayPeriod());
+    }
+
+    function updatePetStyle() {
+      pet.style.left = posX + 'px';
+      pet.style.transform =
+        `translate(${visualOffsetX}px, ${visualOffsetY}px) scale(${scaleX}, ${scaleY})`;
+      if (isSleeping) updateSleepLabelPosition();
+    }
+
+    function updateSleepLabelPosition() {
+      const rect = pet.getBoundingClientRect();
+      sleepLabel.style.left = (rect.left + rect.width / 2) + 'px';
+      sleepLabel.style.top = (rect.top - 16) + 'px';
+    }
+
+    function randomRange(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function chooseNewState() {
+      movementStates = getMovementStatesForPersonality();
+      let weights = { stop: 1, walk: 1, run: 1 };
+
+      if (energy < 30) {
+        weights.run *= 0.3;
+        weights.stop += 2;
+      }
+      if (energy < 10) {
+        weights.run = 0;
+        weights.walk *= 0.3;
+        weights.stop += 3;
+      }
+
+      if (boredom > 60) {
+        weights.run += 2;
+        weights.walk += 1;
+      }
+
+      if (happiness > 70) {
+        weights.walk += 1;
+        weights.run += 1;
+      }
+      if (happiness < 30) {
+        weights.stop += 1;
+      }
+
+      // Ajuste por horário do dia
+      const period = getDayPeriod();
+      if (period === 'morning') {
+        weights.run += 1;
+        weights.walk += 0.5;
+      } else if (period === 'night') {
+        weights.stop += 2;
+        weights.run *= 0.5;
+      } else if (period === 'dawn') {
+        weights.stop += 1;
+      }
+
+      if (PERSONALITY === 'agitated') {
+        weights.run *= 1.8;
+        weights.stop *= 0.5;
+      } else if (PERSONALITY === 'lazy') {
+        weights.stop *= 2;
+        weights.run *= 0.5;
+      } else if (PERSONALITY === 'random') {
+        const r = Math.random();
+        if (r < 0.33) weights.run += 1;
+        else if (r < 0.66) weights.stop += 1;
+      }
+
+      for (let k in weights) weights[k] = Math.max(0, weights[k]);
+
+      const total = weights.stop + weights.walk + weights.run;
+      let rnd = Math.random() * total;
+      let chosen = 'stop';
+
+      if (rnd < weights.stop) {
+        chosen = 'stop';
+      } else if (rnd < weights.stop + weights.walk) {
+        chosen = 'walk';
+      } else {
+        chosen = 'run';
+      }
+
+      const stateConfig = movementStates.find(s => s.name === chosen) || movementStates[0];
+      currentState = stateConfig.name;
+      stateTimer = randomRange(stateConfig.minDuration, stateConfig.maxDuration);
+
+      let dir = Math.sign(velX);
+      if (dir === 0) dir = Math.random() < 0.5 ? -1 : 1;
+      velX = dir * stateConfig.speed;
+    }
+
+    function updatePosition() {
+      const screenWidth = window.innerWidth;
+
+      posX += velX;
+
+      if (posX < 0) {
+        posX = 0;
+        velX = Math.abs(velX);
+      } else if (posX + PET_SIZE > screenWidth) {
+        posX = screenWidth - PET_SIZE;
+        velX = -Math.abs(velX);
+      }
+
+      updatePetStyle();
+    }
+
+    // Atualiza o emoji de acordo com o estado/humor
+    function updateEmoji() {
+      if (isSleeping) {
+        pet.textContent = EMOJIS.sleep;
+        return;
+      }
+
+      if (boredom > 70) {
+        pet.textContent = EMOJIS.bored;
+        return;
+      }
+
+      if (playMode || platformMode) {
+        pet.textContent = EMOJIS.play;
+        return;
+      }
+
+      if (jumpActive || shakeActive) {
+        pet.textContent = EMOJIS.play;
+        return;
+      }
+
+      if (currentState === 'stop') {
+        pet.textContent = EMOJIS.stop;
+      } else if (currentState === 'walk') {
+        pet.textContent = EMOJIS.walk;
+      } else if (currentState === 'run') {
+        pet.textContent = EMOJIS.run;
+      } else {
+        pet.textContent = EMOJIS.stop;
+      }
+    }
+
+    // Sono
+    function enterSleep() {
+      if (isSleeping) return;
+      isSleeping = true;
+      sleepLabel.style.display = 'block';
+
+      velX = 0;
+      jumpActive = false;
+      shakeActive = false;
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+      updatePetStyle();
+      updateEmoji();
+      currentState = 'stop';
+
+      sayFromCategory('sleep', 2500);
+    }
+
+    function exitSleep() {
+      if (!isSleeping) return;
+      isSleeping = false;
+      sleepLabel.style.display = 'none';
+      lastInteractionTime = performance.now();
+      chooseNewState();
+      updateEmoji();
+      sayFromCategory('wake', 2000);
+    }
+
+    // Pulo (mais alto + animação de esticar)
+    function startJump() {
+      jumpActive = true;
+      jumpElapsed = 0;
+      jumpDuration = randomRange(450, 700);      // pulo um pouco mais longo
+      jumpAmplitude = randomRange(16, 28);       // pulo mais ALTO
+    }
+
+    function updateJump(dt) {
+      if (!jumpActive) return;
+
+      if (currentState !== 'run' && !platformMode) {
+        jumpActive = false;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+        return;
+      }
+
+      jumpElapsed += dt;
+      if (jumpElapsed >= jumpDuration) {
+        jumpActive = false;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+      } else {
+        const t = jumpElapsed / jumpDuration;           // 0 → 1
+        const height = Math.sin(Math.PI * t) * jumpAmplitude;
+        visualOffsetY = -height;
+
+        // efeito squash & stretch simples
+        const stretch = Math.sin(Math.PI * t);          // 0 → 1 → 0
+        scaleX = 1 - 0.15 * stretch;                    // mais estreito no ar
+        scaleY = 1 + 0.15 * stretch;                    // mais alto no ar
+      }
+    }
+
+    // Tremida
+    function startShake() {
+      shakeActive = true;
+      shakeElapsed = 0;
+      shakeDuration = randomRange(200, 450);
+      shakeAmplitude =  randomRange(1, 3);
+    }
+
+    function updateShake(dt) {
+      if (!shakeActive) return;
+
+      if (currentState !== 'stop' && !platformMode) {
+        shakeActive = false;
+        visualOffsetX = 0;
+        return;
+      }
+
+      shakeElapsed += dt;
+      if (shakeElapsed >= shakeDuration) {
+        shakeActive = false;
+        visualOffsetX = 0;
+      } else {
+        const t = shakeElapsed / shakeDuration;
+        const wobble = Math.sin(t * Math.PI * 10) * shakeAmplitude;
+        visualOffsetX = wobble;
+      }
+    }
+
+    // Curiosidade (só segue se mouse estiver num quadrado 128px ao redor)
+    function applyCuriosity() {
+      if (!isActive || platformMode) return;
+      if (mouseX === null || mouseY === null) return;
+
+      const now = performance.now();
+      if (now - lastMouseMoveTime > 5000) return;
+
+      const rect = pet.getBoundingClientRect();
+      const petCenterX = rect.left + rect.width / 2;
+      const petCenterY = rect.top + rect.height / 2;
+
+      const dx = mouseX - petCenterX;
+      const dy = mouseY - petCenterY;
+
+      const range = 128;
+
+      if (Math.abs(dx) <= range && Math.abs(dy) <= range) {
+        const dir = dx > 0 ? 1 : -1;
+        const curiositySpeed = 1.2 + (happiness / 100) * 1.5;
+        velX = dir * curiositySpeed;
+      }
+    }
+
+    // Missões / play
+    function updateMissionsAndPlay(dt) {
+      const distFrame = Math.abs(velX) * (dt / 16);
+      distanceWalked += distFrame;
+
+      missions.forEach(m => {
+        if (!m.done && distanceWalked >= m.target) {
+          m.done = true;
+          console.log(`🎯 Missão ${m.id} concluída! Distância alvo: ${m.target}px`);
+          sayFromCategory('mission', 2500);
+          addXp(20);
+        }
+      });
+
+      checkAchievements();
+
+      if (playMode && !platformMode) {
+        playModeTimer -= dt;
+        if (playModeTimer <= 0) {
+          playMode = false;
+          console.log('🎮 Modo brincar terminou!');
+        } else {
+          if (currentState !== 'run' && Math.random() < 0.02) {
+            currentState = 'run';
+            const runConfig = movementStates.find(s => s.name === 'run');
+            if (runConfig) {
+              const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+              velX = dir * (runConfig.speed + 1);
+            }
+          }
+        }
+      }
+    }
+
+    function tryRandomEvent(timestamp) {
+      if (!isActive || platformMode) return;
+      if (isSleeping || dragging || playMode) return;
+      if (timestamp - lastInteractionTime < 8000) return; // espera um tempinho sem interação
+      if (timestamp - lastRandomEventTime < nextRandomEventDelay) return;
+
+      lastRandomEventTime = timestamp;
+      nextRandomEventDelay = randomRange(20000, 45000);
+      triggerRandomEvent();
+    }
+
+    function triggerRandomEvent() {
+      const r = Math.random();
+      if (r < 0.25) {
+        startPlatformMode();
+      } else if (r < 0.55) {
+        startShake();
+        sayFromCategory('random', 2500);
+      } else if (r < 0.85) {
+        startJump();
+        sayFromCategory('random', 2500);
+      } else {
+        sayFromCategory('bored', 2500);
+      }
+    }
+
+    // ----- MODO PLATAFORMAS -----
+
+    function createPlatforms() {
+      clearPlatforms();
+      platforms = [];
+
+      const screenWidth = window.innerWidth;
+      const num = 5;
+      for (let i = 0; i < num; i++) {
+        const width = 60;
+        const margin = screenWidth / (num + 1);
+        const x = margin * (i + 1) - width / 2;
+
+        const baseBottom = 40;
+        const extraHeight = i % 2 === 0 ? 20 : 80;
+        const yBottom = baseBottom + extraHeight;
+
+        const p = { x, yBottom, width, el: null };
+        platforms.push(p);
+      }
+
+      platforms.forEach((p, index) => {
+        const el = document.createElement('div');
+        el.className = 'platform';
+        el.dataset.index = index;
+        el.style.left = p.x + 'px';
+        el.style.width = p.width + 'px';
+        el.style.bottom = p.yBottom + 'px';
+        document.body.appendChild(el);
+        p.el = el;
+      });
+    }
+
+    function clearPlatforms() {
+      platforms.forEach(p => {
+        if (p.el && p.el.parentNode) {
+          p.el.parentNode.removeChild(p.el);
+        }
+      });
+      platforms = [];
+    }
+
+    function movePetToPlatform(platform) {
+      if (!platform) return;
+
+      posX = platform.x + platform.width / 2 - PET_SIZE / 2;
+      pet.style.left = posX + 'px';
+      pet.style.bottom = (platform.yBottom + 6) + 'px';
+
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+      updateEmoji();
+    }
+
+    function startPlatformMode() {
+      if (platformMode) return;
+      if (isSleeping || dragging) return;
+
+      platformMode = true;
+      playMode = false;
+
+      createPlatforms();
+      if (platforms.length === 0) {
+        platformMode = false;
+        return;
+      }
+
+      currentPlatformIndex = 0;
+      movePetToPlatform(platforms[0]);
+      platformStayTimer = 2000; // ms
+      say("Hora do parkour! 🏗️", 2200);
+      console.log('🏗️ Modo plataformas iniciado!');
+    }
+
+    function updatePlatformMode(dt) {
+      if (!platformMode) return;
+      if (platforms.length === 0) {
+        endPlatformMode();
+        return;
+      }
+
+      // animação de "quicar" leve na plataforma
+      const tBounce = performance.now() / 400;
+      visualOffsetY = Math.sin(tBounce) * 3;
+      updatePetStyle();
+
+      platformStayTimer -= dt;
+      if (platformStayTimer <= 0) {
+        currentPlatformIndex++;
+        if (currentPlatformIndex >= platforms.length) {
+          endPlatformMode();
+          return;
+        }
+        const nextPlat = platforms[currentPlatformIndex];
+        animateJumpToPlatform(nextPlat);
+        platformStayTimer = 2000; // tempo em cada plataforma
+      }
+    }
+
+    function animateJumpToPlatform(platform) {
+      if (!platformMode || !platform) return;
+
+      const startX = posX;
+      const endX = platform.x + platform.width / 2 - PET_SIZE / 2;
+
+      const startBottom = parseFloat(pet.style.bottom) || 0;
+      const endBottom = platform.yBottom + 6;
+
+      const duration = 550;
+      const startTime = performance.now();
+
+      function step(now) {
+        if (!platformMode) return;
+        const t = Math.min((now - startTime) / duration, 1);
+        const ease = t * t * (3 - 2 * t);
+
+        posX = startX + (endX - startX) * ease;
+        pet.style.left = posX + 'px';
+
+        const jumpT = Math.sin(t * Math.PI);
+        const currentBottom =
+          startBottom + (endBottom - startBottom) * t + jumpT * 30;
+        pet.style.bottom = currentBottom + 'px';
+
+        // durante o pulo, tira offsets extras
+        visualOffsetX = 0;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+
+        if (t < 1 && platformMode) {
+          requestAnimationFrame(step);
+        } else if (platformMode) {
+          movePetToPlatform(platform);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function endPlatformMode() {
+      platformMode = false;
+      clearPlatforms();
+
+      pet.style.bottom = '0px';
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+
+      updatePetStyle();
+      chooseNewState();
+      say("Ufa! Que treino! 💪", 2200);
+      addXp(15);
+      console.log('🏁 Modo plataformas finalizado.');
+    }
+
+    // ----- LOOP PRINCIPAL -----
+
+    function loop(timestamp) {
+      if (!running) return;
+
+      if (lastTime === null) {
+        lastTime = timestamp;
+      }
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+      const dtSeconds = dt / 1000;
+
+      if (!isSleeping) {
+        if (!platformMode && Math.abs(velX) > 0) {
+          energy -= 4 * dtSeconds;
+          boredom -= 3 * dtSeconds;
+        } else if (!platformMode) {
+          boredom += 2 * dtSeconds;
+        }
+        happiness -= 0.5 * dtSeconds;
+
+        energy = clamp(energy, 0, 100);
+        happiness = clamp(happiness, 0, 100);
+        boredom = clamp(boredom, 0, 100);
+      }
+
+      if (!isSleeping && boredom > 70 && !platformMode) {
+        const now = performance.now();
+        if (now - lastBoredomSpeech > BOREDOM_SPEECH_INTERVAL) {
+          lastBoredomSpeech = now;
+          sayFromCategory('bored', 2500);
+        }
+      }
+
+      if (!platformMode) {
+        tryRandomEvent(timestamp);
+      }
+
+      if (!isSleeping && timestamp - lastInteractionTime >= getCurrentSleepDelay() && !platformMode) {
+        enterSleep();
+      }
+
+      if (isSleeping) {
+        energy    = clamp(energy + 6 * dtSeconds, 0, 100);
+        boredom   = clamp(boredom - 2 * dtSeconds, 0, 100);
+        happiness = clamp(happiness + 1 * dtSeconds, 0, 100);
+
+        const breathe = Math.sin(timestamp / 600) * 2;
+        visualOffsetX = 0;
+        visualOffsetY = -breathe;
+        scaleX = 1;
+        scaleY = 1;
+        updatePetStyle();
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      if (dragging) {
+        updatePetStyle();
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      // Se estiver no modo plataformas, ignora movimento "normal"
+      if (platformMode) {
+        updatePlatformMode(dt);
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      stateTimer -= dt;
+      if (stateTimer <= 0) {
+        chooseNewState();
+      }
+
+      if (isActive && currentState === 'run' && !jumpActive) {
+        let chance = 0.01 * (dt / 16);
+        if (happiness > 70) chance *= 1.5;
+        if (Math.random() < chance) startJump();
+      }
+
+      if (isActive && currentState === 'stop' && !shakeActive) {
+        let chance = 0.01 * (dt / 16);
+        if (happiness > 70) chance *= 1.5;
+        if (Math.random() < chance) startShake();
+      }
+
+      applyCuriosity();
+
+      if (!isActive) {
+        velX *= 0.9;
+      }
+
+      visualOffsetX = shakeActive ? visualOffsetX : 0;
+      if (!jumpActive) {
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+      }
+
+      if (jumpActive) {
+        updateJump(dt);
+      } else if (shakeActive) {
+        updateShake(dt);
+      }
+
+      updateMissionsAndPlay(dt);
+
+      if (Math.abs(velX) > 0.001) {
+        updatePosition();
+      } else {
+        updatePetStyle();
+      }
+
+      updateEmoji();
+      updateStatusPanel();
+      requestAnimationFrame(loop);
+    }
+
+    function registerInteraction() {
+      lastInteractionTime = performance.now();
+      if (isSleeping) {
+        exitSleep();
+      }
+      happiness = clamp(happiness + 5, 0, 100);
+      boredom = clamp(boredom - 5, 0, 100);
+      addXp(1);
+    }
+
+    // Centraliza lógica das ações (alimentar / brincar / remédio / etc.)
+    function doPetAction(action) {
+      if (action === 'feed') {
+        energy = clamp(energy + 30, 0, 100);
+        happiness = clamp(happiness + 15, 0, 100);
+        boredom = clamp(boredom - 10, 0, 100);
+        console.log('🍖 Pet alimentado! Energia:', energy.toFixed(0));
+        addXp(8);
+        sayFromCategory('feed', 2000);
+      } else if (action === 'play') {
+        // Brincar agora inicia o modo plataformas
+        startPlatformMode();
+      } else if (action === 'medicine') {
+        energy = clamp(energy + 20, 0, 100);
+        happiness = clamp(happiness + 8, 0, 100);
+        boredom = clamp(boredom - 5, 0, 100);
+        console.log('💊 Remédio dado! Energia:', energy.toFixed(0));
+        addXp(6);
+        sayFromCategory('medicine', 2200);
+      } else if (action === 'wake') {
+        exitSleep();
+      } else if (action === 'toggle-active') {
+        isActive = !isActive;
+        console.log('Modo', isActive ? 'Ativo' : 'Passivo');
+        sayFromCategory(isActive ? 'modeActive' : 'modePassive', 2200);
+      }
+
+      updateStatusPanel();
+    }
+
+    // Eventos de interação do pet
+    pet.addEventListener('mouseenter', () => {
+      registerInteraction();
+    });
+
+    pet.addEventListener('mousemove', () => {
+      registerInteraction();
+    });
+
+    pet.addEventListener('click', () => {
+      if (dragging) return;
+
+      registerInteraction();
+      sayFromCategory('click', 1500);
+
+      if (!isSleeping && isActive && !platformMode) {
+        if (currentState !== 'run' && Math.random() < 0.5) {
+          currentState = 'run';
+          const runConfig = movementStates.find(s => s.name === 'run');
+          if (runConfig) {
+            const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+            velX = dir * (runConfig.speed + 0.5);
+          }
+        } else {
+          startShake();
+        }
+      }
+    });
+
+    pet.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      velX = 0;
+      const rect = pet.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      registerInteraction();
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      lastMouseMoveTime = performance.now();
+
+      if (dragging) {
+        posX = e.clientX - dragOffsetX;
+        const screenWidth = window.innerWidth;
+        if (posX < 0) posX = 0;
+        if (posX + PET_SIZE > screenWidth) posX = screenWidth - PET_SIZE;
+        updatePetStyle();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        chooseNewState();
+      }
+    });
+
+    // Menu de contexto (botão direito no pet)
+    pet.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      petMenu.style.left = e.clientX + 'px';
+      petMenu.style.top = e.clientY + 'px';
+      petMenu.style.display = 'block';
+    });
+
+    petMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      registerInteraction();
+      doPetAction(action);
+      petMenu.style.display = 'none';
+    });
+
+    // Abertura/fechamento do pop-up pelo botão no topo direito
+    panelToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = statusPopup.style.display === 'block';
+      statusPopup.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Botões dentro do pop-up (alimentar, brincar, remédio)
+    statusPopup.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      registerInteraction();
+      doPetAction(action);
+      e.stopPropagation();
+    });
+
+    // Clique em qualquer lugar da tela: fecha menus/popup se clicar fora
+    window.addEventListener('click', (e) => {
+      if (!petMenu.contains(e.target) && e.target !== pet) {
+        petMenu.style.display = 'none';
+      }
+
+      if (
+        e.target !== panelToggle &&
+        !statusPopup.contains(e.target)
+      ) {
+        statusPopup.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const screenWidth = window.innerWidth;
+      if (posX + PET_SIZE > screenWidth) {
+        posX = Math.max(0, screenWidth - PET_SIZE);
+        updatePetStyle();
+      }
+    });
+
+    function setupDebugPanel() {
+      if (!DEV_MODE || !debugPanelEl) return;
+
+      debugPanelEl.style.display = 'block';
+
+      const debugEnergy = document.getElementById('debug-energy');
+      const debugHappiness = document.getElementById('debug-happiness');
+      const debugBoredom = document.getElementById('debug-boredom');
+      const debugPause = document.getElementById('debug-pause');
+
+      if (debugEnergy) {
+        debugEnergy.value = energy;
+        debugEnergy.addEventListener('input', (e) => {
+          energy = Number(e.target.value);
+          energy = clamp(energy, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugHappiness) {
+        debugHappiness.value = happiness;
+        debugHappiness.addEventListener('input', (e) => {
+          happiness = Number(e.target.value);
+          happiness = clamp(happiness, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugBoredom) {
+        debugBoredom.value = boredom;
+        debugBoredom.addEventListener('input', (e) => {
+          boredom = Number(e.target.value);
+          boredom = clamp(boredom, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugPause) {
+        debugPause.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            running = false;
+          } else {
+            if (!running) {
+              running = true;
+              lastTime = null;
+              requestAnimationFrame(loop);
+            }
+          }
+        });
+      }
+
+      debugPanelEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-debug]');
+        if (!btn) return;
+        const action = btn.dataset.debug;
+
+        if (action === 'sleep') {
+          enterSleep();
+        } else if (action === 'wake') {
+          exitSleep();
+        } else if (action === 'run') {
+          currentState = 'run';
+          const runConfig = movementStates.find(s => s.name === 'run');
+          if (runConfig) {
+            const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+            velX = dir * (runConfig.speed + 1);
+          }
+        } else if (action === 'stop') {
+          currentState = 'stop';
+          velX = 0;
+        } else if (action === 'play') {
+          startPlatformMode();
+        }
+
+        updateStatusPanel();
+      });
+    }
+
+    initPosition();
+    setupDebugPanel();
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
-
-
-
-
