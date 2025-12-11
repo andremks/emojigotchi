@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emojigotchi - Versão Web (Emoji)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #202020;
+      font-family: sans-serif;
+    }
+
+    /* Pet = 24x24, borda arredondada, agora exibindo EMOJI no centro */
+    #pet {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      bottom: 0px; /* encostado na "taskbar" */
+      left: 0;
+      box-sizing: border-box;
+      cursor: default;
+      transform: translate(0, 0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      line-height: 1;
+      text-align: center;
+      user-select: none;
+      z-index: 1000; /* fica por cima das plataformas */
+    }
+
+    /* Label de sono "...zZz" */
+    #sleep-label {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-50%);
+      pointer-events: none;
+      color: #ffffff;
+      font-size: 12px;
+      font-family: sans-serif;
+      text-shadow: 0 0 4px #000;
+      display: none;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.2; }
+    }
+
+    /* Menu de contexto do pet (botão direito) */
+    #pet-menu {
+      position: fixed;
+      background: #333;
+      color: #fff;
+      border-radius: 4px;
+      padding: 4px;
+      font-size: 12px;
+      display: none;
+      z-index: 1500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      min-width: 140px;
+    }
+
+    #pet-menu button {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 4px 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    #pet-menu button:hover {
+      background: #555;
+    }
+
+    /* Balão de fala */
+    #speech-bubble {
+      position: fixed;
+      max-width: 160px;
+      background: #ffffff;
+      color: #000000;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 1400;
+      transform: translate(-50%, -100%);
+      box-sizing: border-box;
+      pointer-events: none;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    #speech-bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #ffffff transparent transparent transparent;
+    }
+
+    /* Botão para abrir o pop-up (canto superior direito) */
+    #panel-toggle {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    #panel-toggle:hover {
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    /* Pop-up de status + ações */
+    #status-popup {
+      position: fixed;
+      top: 48px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #fff;
+      font-size: 11px;
+      min-width: 190px;
+      z-index: 1550;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.8);
+      display: none;
+    }
+
+    #status-popup .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    #status-popup .status-header span {
+      white-space: nowrap;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 3px;
+    }
+
+    .status-name {
+      min-width: 58px;
+    }
+
+    .status-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .status-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #4caf50; /* padrão energia */
+      transition: width 0.15s linear;
+    }
+
+    #bar-happiness {
+      background: #ffc107;
+    }
+
+    #bar-boredom {
+      background: #2196f3;
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .actions-row button {
+      flex: 1;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      cursor: pointer;
+      padding: 4px 0;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .actions-row button:hover {
+      background: rgba(255,255,255,0.24);
+    }
+
+    /* Painel de debug/dev */
+    #debug-panel {
+      position: fixed;
+      top: 8px;
+      right: 48px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #ffffff;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      z-index: 2000;
+      min-width: 190px;
+      display: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+
+    #debug-panel h4 {
+      margin: 0 0 4px 0;
+      font-size: 12px;
+    }
+
+    #debug-panel label {
+      display: block;
+      margin: 2px 0;
+    }
+
+    #debug-panel input[type="range"] {
+      width: 100%;
+    }
+
+    #debug-panel button {
+      margin: 2px 2px 0 0;
+      font-size: 10px;
+      padding: 2px 4px;
+      cursor: pointer;
+    }
+
+    #debug-panel .debug-row {
+      margin-bottom: 4px;
+    }
+
+    /* Plataformas do modo parkour */
+    .platform {
+      position: fixed;
+      height: 6px;
+      background: lime;
+      border-radius: 3px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6);
+      z-index: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="pet"></div>
+
+  <div id="sleep-label">...zZz</div>
+
+  <!-- Menu de contexto (botão direito no pet) -->
+  <div id="pet-menu">
+    <button data-action="feed">🍖 Alimentar</button>
+    <button data-action="play">🎮 Brincar</button>
+    <button data-action="medicine">💊 Dar remédio</button>
+    <button data-action="wake">🔔 Acordar</button>
+    <button data-action="toggle-active">⏯️ Ativo/Passivo</button>
+  </div>
+
+  <!-- Balão de fala -->
+  <div id="speech-bubble"></div>
+
+  <!-- Botão que abre o pop-up -->
+  <button id="panel-toggle" title="Status do pet">🐾</button>
+
+  <!-- Pop-up de status + ações -->
+  <div id="status-popup">
+    <div class="status-header">
+      <span>Lv <span id="status-level">1</span></span>
+      <span id="status-xp">0 / 100 XP</span>
+    </div>
+    <div class="status-line">
+      <span class="status-name">Energia</span>
+      <div class="status-bar">
+        <div id="bar-energy" class="status-bar-fill"></div>
+      </div>
+    </div>
+    <div class="status-line">
+      <span class="status-name">Felicidade</span>
+      <div class="status-bar">
+        <div id="bar-happiness" class="status-bar-fill"></div>
+      </div>
+    </div>
+    <div class="status-line">
+      <span class="status-name">Tédio</span>
+      <div class="status-bar">
+        <div id="bar-boredom" class="status-bar-fill"></div>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button data-action="feed"><span>🍖</span><span>Alimentar</span></button>
+      <button data-action="play"><span>🎮</span><span>Brincar</span></button>
+      <button data-action="medicine"><span>💊</span><span>Remédio</span></button>
+    </div>
+  </div>
+
+  <!-- Painel de Debug (ativado com ?dev=1 na URL) -->
+  <div id="debug-panel">
+    <h4>Debug Pet</h4>
+    <div class="debug-row">
+      <label>Energia
+        <input id="debug-energy" type="range" min="0" max="100" value="80">
+      </label>
+      <label>Felicidade
+        <input id="debug-happiness" type="range" min="0" max="100" value="60">
+      </label>
+      <label>Tédio
+        <input id="debug-boredom" type="range" min="0" max="100" value="20">
+      </label>
+    </div>
+    <div class="debug-row">
+      <button data-debug="sleep">Dormir</button>
+      <button data-debug="wake">Acordar</button>
+    </div>
+    <div class="debug-row">
+      <button data-debug="run">Forçar correr</button>
+      <button data-debug="stop">Parar</button>
+      <button data-debug="play">Play mode</button>
+    </div>
+    <div class="debug-row">
+      <label>
+        <input type="checkbox" id="debug-pause">
+        Pausar loop
+      </label>
+    </div>
+  </div>
+
+  <script>
+    const PET_SIZE = 24;
+    const pet = document.getElementById('pet');
+    const sleepLabel = document.getElementById('sleep-label');
+    const petMenu = document.getElementById('pet-menu');
+    const speechBubble = document.getElementById('speech-bubble');
+
+    const panelToggle = document.getElementById('panel-toggle');
+    const statusPopup = document.getElementById('status-popup');
+
+    const statusLevel = document.getElementById('status-level');
+    const statusXp = document.getElementById('status-xp');
+    const barEnergy = document.getElementById('bar-energy');
+    const barHappiness = document.getElementById('bar-happiness');
+    const barBoredom = document.getElementById('bar-boredom');
+
+    const debugPanelEl = document.getElementById('debug-panel');
+    const DEV_MODE = new URLSearchParams(window.location.search).get('dev') === '1';
+
+    const SLEEP_DELAY = 2 * 60 * 1000; // base 2 minutos
+    const PERSONALITY = 'random';
+
+    // Emojis por "emoção"/estado
+    const EMOJIS = {
+      sleep:   "😴",
+      stop:    "🙂",
+      walk:    "😁",
+      run:     "😆",
+      bored:   "😡",
+      play:    "😀",
+      curious: "🤨"
+    };
+
+    let posX = 0;
+    let velX = 3;
+    let running = true;
+
+    let currentState = 'walk';
+    let stateTimer = 0;
+    let lastTime = null;
+
+    let isSleeping = false;
+    let lastInteractionTime = performance.now();
+
+    // Humor
+    let energy = 80;
+    let happiness = 60;
+    let boredom = 20;
+
+    // Level / XP / conquistas
+    let level = 1;
+    let xp = 0;
+    const XP_PER_LEVEL = 100;
+
+    let isActive = true;
+
+    // Pulo / tremida + escala
+    let visualOffsetX = 0;
+    let visualOffsetY = 0;
+    let jumpActive = false;
+    let jumpElapsed = 0;
+    let jumpDuration = 500;
+    let jumpAmplitude = 10;
+
+    let shakeActive = false;
+    let shakeElapsed = 0;
+    let shakeDuration = 300;
+    let shakeAmplitude = 2;
+
+    let scaleX = 1;
+    let scaleY = 1;
+
+    // Mouse / curiosidade
+    let mouseX = null;
+    let mouseY = null;
+    let lastMouseMoveTime = 0;
+
+    // Arrastar
+    let dragging = false;
+    let dragOffsetX = 0;
+
+    // Mini-game
+    let playMode = false;
+    let playModeTimer = 0;
+    let distanceWalked = 0;
+    const missions = [
+      { id: 1, target: 500, done: false },
+      { id: 2, target: 2000, done: false },
+      { id: 3, target: 10000, done: false }
+    ];
+
+    const achievements = [
+      {
+        id: 'marathonista',
+        label: 'Maratonista',
+        unlocked: false,
+        check: () => distanceWalked >= 10000
+      }
+    ];
+
+    // Modo plataformas (parkour)
+    let platformMode = false;
+    let platforms = [];
+    let currentPlatformIndex = 0;
+    let platformStayTimer = 0; // ms
+
+    // Frases
+    const phrases = {
+      click: [
+        "Ei!",
+        "Opa!",
+        "Que foi?",
+        "Oi humano!",
+        "Hehe!"
+      ],
+      sleep: [
+        "Tô com sono...",
+        "Fui dormir...",
+        "Boa noite..."
+      ],
+      wake: [
+        "Acordei!",
+        "Já tô de pé!",
+        "Voltei!"
+      ],
+      feed: [
+        "Hmmm, valeu!",
+        "Que delícia!",
+        "Tava com fome!"
+      ],
+      play: [
+        "Uhuu, brincar!",
+        "Bora brincar!",
+        "Adoro isso!"
+      ],
+      modeActive: [
+        "Modo ativo ON!",
+        "Tô ligado!",
+        "Bora se mexer!"
+      ],
+      modePassive: [
+        "Modo relax...",
+        "Vou ficar mais quieto.",
+        "Ok, devagar agora."
+      ],
+      bored: [
+        "Tô entediado...",
+        "Brinca comigo?",
+        "Que tédio..."
+      ],
+      mission: [
+        "uHuuuuUUU!",
+        "Tamo ai na atividade!",
+        "Tô upandi, vc viu?"
+      ],
+      random: [
+        "Só passando pra lembrar que existo.",
+        "Oi, ainda aí?",
+        "Me dá atenção 😜"
+      ],
+      levelUp: [
+        "Subi de nível!",
+        "Sou outro pet agora!",
+        "Mais forte ainda!"
+      ],
+      achievement: [
+        "Conquista desbloqueada!",
+        "Olha eu ficando PRO!",
+        "Tô colecionando troféus!"
+      ],
+      medicine: [
+        "Tô me sentindo melhor!",
+        "Essa foi amarga, mas ajudou.",
+        "Acho que estou curado 😌"
+      ]
+    };
+
+    const phraseIndexByCategory = {};
+    let speechTimeoutId = null;
+    let lastBoredomSpeech = 0;
+    const BOREDOM_SPEECH_INTERVAL = 15000; // 15s entre falas de tédio
+
+    // Eventos aleatórios
+    let lastRandomEventTime = performance.now();
+    let nextRandomEventDelay = 30000; // será randomizado depois
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function nextPhrase(category) {
+      const arr = phrases[category];
+      if (!arr || arr.length === 0) return null;
+      const lastIdx = phraseIndexByCategory[category] ?? -1;
+      const nextIdx = (lastIdx + 1) % arr.length;
+      phraseIndexByCategory[category] = nextIdx;
+      return arr[nextIdx];
+    }
+
+    function say(text, duration = 2000) {
+      if (!text) return;
+
+      const rect = pet.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top - 8;
+
+      speechBubble.textContent = text;
+      speechBubble.style.left = x + 'px';
+      speechBubble.style.top = y + 'px';
+      speechBubble.style.display = 'block';
+
+      if (speechTimeoutId) {
+        clearTimeout(speechTimeoutId);
+      }
+      speechTimeoutId = setTimeout(() => {
+        speechBubble.style.display = 'none';
+      }, duration);
+    }
+
+    function sayFromCategory(category, duration = 2000) {
+      const text = nextPhrase(category);
+      say(text, duration);
+    }
+
+    function updateStatusPanel() {
+      if (!barEnergy) return;
+      barEnergy.style.width = energy + '%';
+      barHappiness.style.width = happiness + '%';
+      barBoredom.style.width = boredom + '%';
+      statusLevel.textContent = level;
+      statusXp.textContent = `${xp} / ${XP_PER_LEVEL} XP`;
+    }
+
+    function addXp(amount) {
+      if (amount <= 0) return;
+      xp += amount;
+      console.log(`XP +${amount} (total: ${xp})`);
+
+      while (xp >= XP_PER_LEVEL) {
+        xp -= XP_PER_LEVEL;
+        level++;
+        console.log(`⭐ Level up! Novo nível: ${level}`);
+        sayFromCategory('levelUp', 2500);
+      }
+      updateStatusPanel();
+    }
+
+    function checkAchievements() {
+      achievements.forEach(ach => {
+        if (!ach.unlocked && ach.check()) {
+          ach.unlocked = true;
+          console.log(`🏆 Conquista desbloqueada: ${ach.label}`);
+          sayFromCategory('achievement', 2500);
+          addXp(30);
+        }
+      });
+    }
+
+    const movementStatesBase = [
+      { name: 'stop', minDuration: 800, maxDuration: 2000, speed: 0 },
+      { name: 'walk', minDuration: 2000, maxDuration: 5000, speed: 1.0 },
+      { name: 'run',  minDuration: 800,  maxDuration: 2000, speed: 2.5 }
+    ];
+
+    function getMovementStatesForPersonality() {
+      const states = JSON.parse(JSON.stringify(movementStatesBase));
+      if (PERSONALITY === 'agitated') {
+        states.find(s => s.name === 'run').speed = 3.5;
+        states.find(s => s.name === 'stop').maxDuration = 1200;
+      } else if (PERSONALITY === 'lazy') {
+        states.find(s => s.name === 'run').speed = 2.0;
+        states.find(s => s.name === 'stop').maxDuration = 3000;
+      }
+      return states;
+    }
+
+    let movementStates = getMovementStatesForPersonality();
+
+    function getDayPeriod() {
+      const h = new Date().getHours();
+      if (h < 6) return 'dawn';
+      if (h < 12) return 'morning';
+      if (h < 18) return 'afternoon';
+      return 'night';
+    }
+
+    function getCurrentSleepDelay() {
+      const period = getDayPeriod();
+      if (period === 'night') {
+        return SLEEP_DELAY * 0.5; // dorme mais rápido à noite
+      }
+      if (period === 'morning') {
+        return SLEEP_DELAY * 1.2; // manhã = mais disposto
+      }
+      return SLEEP_DELAY; // tarde / outros
+    }
+
+    function initPosition() {
+      posX = window.innerWidth / 2 - PET_SIZE / 2;
+      pet.style.bottom = '0px';
+      updatePetStyle();
+      updateEmoji();
+      movementStates = getMovementStatesForPersonality();
+      chooseNewState();
+      lastInteractionTime = performance.now();
+
+      lastRandomEventTime = performance.now();
+      nextRandomEventDelay = randomRange(20000, 45000);
+      updateStatusPanel();
+
+      console.log('Período do dia:', getDayPeriod());
+    }
+
+    function updatePetStyle() {
+      pet.style.left = posX + 'px';
+      pet.style.transform =
+        `translate(${visualOffsetX}px, ${visualOffsetY}px) scale(${scaleX}, ${scaleY})`;
+      if (isSleeping) updateSleepLabelPosition();
+    }
+
+    function updateSleepLabelPosition() {
+      const rect = pet.getBoundingClientRect();
+      sleepLabel.style.left = (rect.left + rect.width / 2) + 'px';
+      sleepLabel.style.top = (rect.top - 16) + 'px';
+    }
+
+    function randomRange(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function chooseNewState() {
+      movementStates = getMovementStatesForPersonality();
+      let weights = { stop: 1, walk: 1, run: 1 };
+
+      if (energy < 30) {
+        weights.run *= 0.3;
+        weights.stop += 2;
+      }
+      if (energy < 10) {
+        weights.run = 0;
+        weights.walk *= 0.3;
+        weights.stop += 3;
+      }
+
+      if (boredom > 60) {
+        weights.run += 2;
+        weights.walk += 1;
+      }
+
+      if (happiness > 70) {
+        weights.walk += 1;
+        weights.run += 1;
+      }
+      if (happiness < 30) {
+        weights.stop += 1;
+      }
+
+      // Ajuste por horário do dia
+      const period = getDayPeriod();
+      if (period === 'morning') {
+        weights.run += 1;
+        weights.walk += 0.5;
+      } else if (period === 'night') {
+        weights.stop += 2;
+        weights.run *= 0.5;
+      } else if (period === 'dawn') {
+        weights.stop += 1;
+      }
+
+      if (PERSONALITY === 'agitated') {
+        weights.run *= 1.8;
+        weights.stop *= 0.5;
+      } else if (PERSONALITY === 'lazy') {
+        weights.stop *= 2;
+        weights.run *= 0.5;
+      } else if (PERSONALITY === 'random') {
+        const r = Math.random();
+        if (r < 0.33) weights.run += 1;
+        else if (r < 0.66) weights.stop += 1;
+      }
+
+      for (let k in weights) weights[k] = Math.max(0, weights[k]);
+
+      const total = weights.stop + weights.walk + weights.run;
+      let rnd = Math.random() * total;
+      let chosen = 'stop';
+
+      if (rnd < weights.stop) {
+        chosen = 'stop';
+      } else if (rnd < weights.stop + weights.walk) {
+        chosen = 'walk';
+      } else {
+        chosen = 'run';
+      }
+
+      const stateConfig = movementStates.find(s => s.name === chosen) || movementStates[0];
+      currentState = stateConfig.name;
+      stateTimer = randomRange(stateConfig.minDuration, stateConfig.maxDuration);
+
+      let dir = Math.sign(velX);
+      if (dir === 0) dir = Math.random() < 0.5 ? -1 : 1;
+      velX = dir * stateConfig.speed;
+    }
+
+    function updatePosition() {
+      const screenWidth = window.innerWidth;
+
+      posX += velX;
+
+      if (posX < 0) {
+        posX = 0;
+        velX = Math.abs(velX);
+      } else if (posX + PET_SIZE > screenWidth) {
+        posX = screenWidth - PET_SIZE;
+        velX = -Math.abs(velX);
+      }
+
+      updatePetStyle();
+    }
+
+    // Atualiza o emoji de acordo com o estado/humor
+    function updateEmoji() {
+      if (isSleeping) {
+        pet.textContent = EMOJIS.sleep;
+        return;
+      }
+
+      if (boredom > 70) {
+        pet.textContent = EMOJIS.bored;
+        return;
+      }
+
+      if (playMode || platformMode) {
+        pet.textContent = EMOJIS.play;
+        return;
+      }
+
+      if (jumpActive || shakeActive) {
+        pet.textContent = EMOJIS.play;
+        return;
+      }
+
+      if (currentState === 'stop') {
+        pet.textContent = EMOJIS.stop;
+      } else if (currentState === 'walk') {
+        pet.textContent = EMOJIS.walk;
+      } else if (currentState === 'run') {
+        pet.textContent = EMOJIS.run;
+      } else {
+        pet.textContent = EMOJIS.stop;
+      }
+    }
+
+    // Sono
+    function enterSleep() {
+      if (isSleeping) return;
+      isSleeping = true;
+      sleepLabel.style.display = 'block';
+
+      velX = 0;
+      jumpActive = false;
+      shakeActive = false;
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+      updatePetStyle();
+      updateEmoji();
+      currentState = 'stop';
+
+      sayFromCategory('sleep', 2500);
+    }
+
+    function exitSleep() {
+      if (!isSleeping) return;
+      isSleeping = false;
+      sleepLabel.style.display = 'none';
+      lastInteractionTime = performance.now();
+      chooseNewState();
+      updateEmoji();
+      sayFromCategory('wake', 2000);
+    }
+
+    // Pulo (mais alto + animação de esticar)
+    function startJump() {
+      jumpActive = true;
+      jumpElapsed = 0;
+      jumpDuration = randomRange(450, 700);      // pulo um pouco mais longo
+      jumpAmplitude = randomRange(16, 28);       // pulo mais ALTO
+    }
+
+    function updateJump(dt) {
+      if (!jumpActive) return;
+
+      if (currentState !== 'run' && !platformMode) {
+        jumpActive = false;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+        return;
+      }
+
+      jumpElapsed += dt;
+      if (jumpElapsed >= jumpDuration) {
+        jumpActive = false;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+      } else {
+        const t = jumpElapsed / jumpDuration;           // 0 → 1
+        const height = Math.sin(Math.PI * t) * jumpAmplitude;
+        visualOffsetY = -height;
+
+        // efeito squash & stretch simples
+        const stretch = Math.sin(Math.PI * t);          // 0 → 1 → 0
+        scaleX = 1 - 0.15 * stretch;                    // mais estreito no ar
+        scaleY = 1 + 0.15 * stretch;                    // mais alto no ar
+      }
+    }
+
+    // Tremida
+    function startShake() {
+      shakeActive = true;
+      shakeElapsed = 0;
+      shakeDuration = randomRange(200, 450);
+      shakeAmplitude =  randomRange(1, 3);
+    }
+
+    function updateShake(dt) {
+      if (!shakeActive) return;
+
+      if (currentState !== 'stop' && !platformMode) {
+        shakeActive = false;
+        visualOffsetX = 0;
+        return;
+      }
+
+      shakeElapsed += dt;
+      if (shakeElapsed >= shakeDuration) {
+        shakeActive = false;
+        visualOffsetX = 0;
+      } else {
+        const t = shakeElapsed / shakeDuration;
+        const wobble = Math.sin(t * Math.PI * 10) * shakeAmplitude;
+        visualOffsetX = wobble;
+      }
+    }
+
+    // Curiosidade (só segue se mouse estiver num quadrado 128px ao redor)
+    function applyCuriosity() {
+      if (!isActive || platformMode) return;
+      if (mouseX === null || mouseY === null) return;
+
+      const now = performance.now();
+      if (now - lastMouseMoveTime > 5000) return;
+
+      const rect = pet.getBoundingClientRect();
+      const petCenterX = rect.left + rect.width / 2;
+      const petCenterY = rect.top + rect.height / 2;
+
+      const dx = mouseX - petCenterX;
+      const dy = mouseY - petCenterY;
+
+      const range = 128;
+
+      if (Math.abs(dx) <= range && Math.abs(dy) <= range) {
+        const dir = dx > 0 ? 1 : -1;
+        const curiositySpeed = 1.2 + (happiness / 100) * 1.5;
+        velX = dir * curiositySpeed;
+      }
+    }
+
+    // Missões / play
+    function updateMissionsAndPlay(dt) {
+      const distFrame = Math.abs(velX) * (dt / 16);
+      distanceWalked += distFrame;
+
+      missions.forEach(m => {
+        if (!m.done && distanceWalked >= m.target) {
+          m.done = true;
+          console.log(`🎯 Missão ${m.id} concluída! Distância alvo: ${m.target}px`);
+          sayFromCategory('mission', 2500);
+          addXp(20);
+        }
+      });
+
+      checkAchievements();
+
+      if (playMode && !platformMode) {
+        playModeTimer -= dt;
+        if (playModeTimer <= 0) {
+          playMode = false;
+          console.log('🎮 Modo brincar terminou!');
+        } else {
+          if (currentState !== 'run' && Math.random() < 0.02) {
+            currentState = 'run';
+            const runConfig = movementStates.find(s => s.name === 'run');
+            if (runConfig) {
+              const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+              velX = dir * (runConfig.speed + 1);
+            }
+          }
+        }
+      }
+    }
+
+    function tryRandomEvent(timestamp) {
+      if (!isActive || platformMode) return;
+      if (isSleeping || dragging || playMode) return;
+      if (timestamp - lastInteractionTime < 8000) return; // espera um tempinho sem interação
+      if (timestamp - lastRandomEventTime < nextRandomEventDelay) return;
+
+      lastRandomEventTime = timestamp;
+      nextRandomEventDelay = randomRange(20000, 45000);
+      triggerRandomEvent();
+    }
+
+    function triggerRandomEvent() {
+      const r = Math.random();
+      if (r < 0.25) {
+        startPlatformMode();
+      } else if (r < 0.55) {
+        startShake();
+        sayFromCategory('random', 2500);
+      } else if (r < 0.85) {
+        startJump();
+        sayFromCategory('random', 2500);
+      } else {
+        sayFromCategory('bored', 2500);
+      }
+    }
+
+    // ----- MODO PLATAFORMAS -----
+
+    function createPlatforms() {
+      clearPlatforms();
+      platforms = [];
+
+      const screenWidth = window.innerWidth;
+      const num = 5;
+      for (let i = 0; i < num; i++) {
+        const width = 60;
+        const margin = screenWidth / (num + 1);
+        const x = margin * (i + 1) - width / 2;
+
+        const baseBottom = 40;
+        const extraHeight = i % 2 === 0 ? 20 : 80;
+        const yBottom = baseBottom + extraHeight;
+
+        const p = { x, yBottom, width, el: null };
+        platforms.push(p);
+      }
+
+      platforms.forEach((p, index) => {
+        const el = document.createElement('div');
+        el.className = 'platform';
+        el.dataset.index = index;
+        el.style.left = p.x + 'px';
+        el.style.width = p.width + 'px';
+        el.style.bottom = p.yBottom + 'px';
+        document.body.appendChild(el);
+        p.el = el;
+      });
+    }
+
+    function clearPlatforms() {
+      platforms.forEach(p => {
+        if (p.el && p.el.parentNode) {
+          p.el.parentNode.removeChild(p.el);
+        }
+      });
+      platforms = [];
+    }
+
+    function movePetToPlatform(platform) {
+      if (!platform) return;
+
+      posX = platform.x + platform.width / 2 - PET_SIZE / 2;
+      pet.style.left = posX + 'px';
+      pet.style.bottom = (platform.yBottom + 6) + 'px';
+
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+      updateEmoji();
+    }
+
+    function startPlatformMode() {
+      if (platformMode) return;
+      if (isSleeping || dragging) return;
+
+      platformMode = true;
+      playMode = false;
+
+      createPlatforms();
+      if (platforms.length === 0) {
+        platformMode = false;
+        return;
+      }
+
+      currentPlatformIndex = 0;
+      movePetToPlatform(platforms[0]);
+      platformStayTimer = 2000; // ms
+      say("Hora do parkour! 🏗️", 2200);
+      console.log('🏗️ Modo plataformas iniciado!');
+    }
+
+    function updatePlatformMode(dt) {
+      if (!platformMode) return;
+      if (platforms.length === 0) {
+        endPlatformMode();
+        return;
+      }
+
+      // animação de "quicar" leve na plataforma
+      const tBounce = performance.now() / 400;
+      visualOffsetY = Math.sin(tBounce) * 3;
+      updatePetStyle();
+
+      platformStayTimer -= dt;
+      if (platformStayTimer <= 0) {
+        currentPlatformIndex++;
+        if (currentPlatformIndex >= platforms.length) {
+          endPlatformMode();
+          return;
+        }
+        const nextPlat = platforms[currentPlatformIndex];
+        animateJumpToPlatform(nextPlat);
+        platformStayTimer = 2000; // tempo em cada plataforma
+      }
+    }
+
+    function animateJumpToPlatform(platform) {
+      if (!platformMode || !platform) return;
+
+      const startX = posX;
+      const endX = platform.x + platform.width / 2 - PET_SIZE / 2;
+
+      const startBottom = parseFloat(pet.style.bottom) || 0;
+      const endBottom = platform.yBottom + 6;
+
+      const duration = 550;
+      const startTime = performance.now();
+
+      function step(now) {
+        if (!platformMode) return;
+        const t = Math.min((now - startTime) / duration, 1);
+        const ease = t * t * (3 - 2 * t);
+
+        posX = startX + (endX - startX) * ease;
+        pet.style.left = posX + 'px';
+
+        const jumpT = Math.sin(t * Math.PI);
+        const currentBottom =
+          startBottom + (endBottom - startBottom) * t + jumpT * 30;
+        pet.style.bottom = currentBottom + 'px';
+
+        // durante o pulo, tira offsets extras
+        visualOffsetX = 0;
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+
+        if (t < 1 && platformMode) {
+          requestAnimationFrame(step);
+        } else if (platformMode) {
+          movePetToPlatform(platform);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function endPlatformMode() {
+      platformMode = false;
+      clearPlatforms();
+
+      pet.style.bottom = '0px';
+      visualOffsetX = 0;
+      visualOffsetY = 0;
+      scaleX = 1;
+      scaleY = 1;
+
+      updatePetStyle();
+      chooseNewState();
+      say("Ufa! Que treino! 💪", 2200);
+      addXp(15);
+      console.log('🏁 Modo plataformas finalizado.');
+    }
+
+    // ----- LOOP PRINCIPAL -----
+
+    function loop(timestamp) {
+      if (!running) return;
+
+      if (lastTime === null) {
+        lastTime = timestamp;
+      }
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+      const dtSeconds = dt / 1000;
+
+      if (!isSleeping) {
+        if (!platformMode && Math.abs(velX) > 0) {
+          energy -= 4 * dtSeconds;
+          boredom -= 3 * dtSeconds;
+        } else if (!platformMode) {
+          boredom += 2 * dtSeconds;
+        }
+        happiness -= 0.5 * dtSeconds;
+
+        energy = clamp(energy, 0, 100);
+        happiness = clamp(happiness, 0, 100);
+        boredom = clamp(boredom, 0, 100);
+      }
+
+      if (!isSleeping && boredom > 70 && !platformMode) {
+        const now = performance.now();
+        if (now - lastBoredomSpeech > BOREDOM_SPEECH_INTERVAL) {
+          lastBoredomSpeech = now;
+          sayFromCategory('bored', 2500);
+        }
+      }
+
+      if (!platformMode) {
+        tryRandomEvent(timestamp);
+      }
+
+      if (!isSleeping && timestamp - lastInteractionTime >= getCurrentSleepDelay() && !platformMode) {
+        enterSleep();
+      }
+
+      if (isSleeping) {
+        energy    = clamp(energy + 6 * dtSeconds, 0, 100);
+        boredom   = clamp(boredom - 2 * dtSeconds, 0, 100);
+        happiness = clamp(happiness + 1 * dtSeconds, 0, 100);
+
+        const breathe = Math.sin(timestamp / 600) * 2;
+        visualOffsetX = 0;
+        visualOffsetY = -breathe;
+        scaleX = 1;
+        scaleY = 1;
+        updatePetStyle();
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      if (dragging) {
+        updatePetStyle();
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      // Se estiver no modo plataformas, ignora movimento "normal"
+      if (platformMode) {
+        updatePlatformMode(dt);
+        updateEmoji();
+        updateStatusPanel();
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      stateTimer -= dt;
+      if (stateTimer <= 0) {
+        chooseNewState();
+      }
+
+      if (isActive && currentState === 'run' && !jumpActive) {
+        let chance = 0.01 * (dt / 16);
+        if (happiness > 70) chance *= 1.5;
+        if (Math.random() < chance) startJump();
+      }
+
+      if (isActive && currentState === 'stop' && !shakeActive) {
+        let chance = 0.01 * (dt / 16);
+        if (happiness > 70) chance *= 1.5;
+        if (Math.random() < chance) startShake();
+      }
+
+      applyCuriosity();
+
+      if (!isActive) {
+        velX *= 0.9;
+      }
+
+      visualOffsetX = shakeActive ? visualOffsetX : 0;
+      if (!jumpActive) {
+        visualOffsetY = 0;
+        scaleX = 1;
+        scaleY = 1;
+      }
+
+      if (jumpActive) {
+        updateJump(dt);
+      } else if (shakeActive) {
+        updateShake(dt);
+      }
+
+      updateMissionsAndPlay(dt);
+
+      if (Math.abs(velX) > 0.001) {
+        updatePosition();
+      } else {
+        updatePetStyle();
+      }
+
+      updateEmoji();
+      updateStatusPanel();
+      requestAnimationFrame(loop);
+    }
+
+    function registerInteraction() {
+      lastInteractionTime = performance.now();
+      if (isSleeping) {
+        exitSleep();
+      }
+      happiness = clamp(happiness + 5, 0, 100);
+      boredom = clamp(boredom - 5, 0, 100);
+      addXp(1);
+    }
+
+    // Centraliza lógica das ações (alimentar / brincar / remédio / etc.)
+    function doPetAction(action) {
+      if (action === 'feed') {
+        energy = clamp(energy + 30, 0, 100);
+        happiness = clamp(happiness + 15, 0, 100);
+        boredom = clamp(boredom - 10, 0, 100);
+        console.log('🍖 Pet alimentado! Energia:', energy.toFixed(0));
+        addXp(8);
+        sayFromCategory('feed', 2000);
+      } else if (action === 'play') {
+        // Brincar agora inicia o modo plataformas
+        startPlatformMode();
+      } else if (action === 'medicine') {
+        energy = clamp(energy + 20, 0, 100);
+        happiness = clamp(happiness + 8, 0, 100);
+        boredom = clamp(boredom - 5, 0, 100);
+        console.log('💊 Remédio dado! Energia:', energy.toFixed(0));
+        addXp(6);
+        sayFromCategory('medicine', 2200);
+      } else if (action === 'wake') {
+        exitSleep();
+      } else if (action === 'toggle-active') {
+        isActive = !isActive;
+        console.log('Modo', isActive ? 'Ativo' : 'Passivo');
+        sayFromCategory(isActive ? 'modeActive' : 'modePassive', 2200);
+      }
+
+      updateStatusPanel();
+    }
+
+    // Eventos de interação do pet
+    pet.addEventListener('mouseenter', () => {
+      registerInteraction();
+    });
+
+    pet.addEventListener('mousemove', () => {
+      registerInteraction();
+    });
+
+    pet.addEventListener('click', () => {
+      if (dragging) return;
+
+      registerInteraction();
+      sayFromCategory('click', 1500);
+
+      if (!isSleeping && isActive && !platformMode) {
+        if (currentState !== 'run' && Math.random() < 0.5) {
+          currentState = 'run';
+          const runConfig = movementStates.find(s => s.name === 'run');
+          if (runConfig) {
+            const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+            velX = dir * (runConfig.speed + 0.5);
+          }
+        } else {
+          startShake();
+        }
+      }
+    });
+
+    pet.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      velX = 0;
+      const rect = pet.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      registerInteraction();
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      lastMouseMoveTime = performance.now();
+
+      if (dragging) {
+        posX = e.clientX - dragOffsetX;
+        const screenWidth = window.innerWidth;
+        if (posX < 0) posX = 0;
+        if (posX + PET_SIZE > screenWidth) posX = screenWidth - PET_SIZE;
+        updatePetStyle();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        chooseNewState();
+      }
+    });
+
+    // Menu de contexto (botão direito no pet)
+    pet.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      petMenu.style.left = e.clientX + 'px';
+      petMenu.style.top = e.clientY + 'px';
+      petMenu.style.display = 'block';
+    });
+
+    petMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      registerInteraction();
+      doPetAction(action);
+      petMenu.style.display = 'none';
+    });
+
+    // Abertura/fechamento do pop-up pelo botão no topo direito
+    panelToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = statusPopup.style.display === 'block';
+      statusPopup.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Botões dentro do pop-up (alimentar, brincar, remédio)
+    statusPopup.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      registerInteraction();
+      doPetAction(action);
+      e.stopPropagation();
+    });
+
+    // Clique em qualquer lugar da tela: fecha menus/popup se clicar fora
+    window.addEventListener('click', (e) => {
+      if (!petMenu.contains(e.target) && e.target !== pet) {
+        petMenu.style.display = 'none';
+      }
+
+      if (
+        e.target !== panelToggle &&
+        !statusPopup.contains(e.target)
+      ) {
+        statusPopup.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const screenWidth = window.innerWidth;
+      if (posX + PET_SIZE > screenWidth) {
+        posX = Math.max(0, screenWidth - PET_SIZE);
+        updatePetStyle();
+      }
+    });
+
+    function setupDebugPanel() {
+      if (!DEV_MODE || !debugPanelEl) return;
+
+      debugPanelEl.style.display = 'block';
+
+      const debugEnergy = document.getElementById('debug-energy');
+      const debugHappiness = document.getElementById('debug-happiness');
+      const debugBoredom = document.getElementById('debug-boredom');
+      const debugPause = document.getElementById('debug-pause');
+
+      if (debugEnergy) {
+        debugEnergy.value = energy;
+        debugEnergy.addEventListener('input', (e) => {
+          energy = Number(e.target.value);
+          energy = clamp(energy, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugHappiness) {
+        debugHappiness.value = happiness;
+        debugHappiness.addEventListener('input', (e) => {
+          happiness = Number(e.target.value);
+          happiness = clamp(happiness, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugBoredom) {
+        debugBoredom.value = boredom;
+        debugBoredom.addEventListener('input', (e) => {
+          boredom = Number(e.target.value);
+          boredom = clamp(boredom, 0, 100);
+          updateStatusPanel();
+        });
+      }
+
+      if (debugPause) {
+        debugPause.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            running = false;
+          } else {
+            if (!running) {
+              running = true;
+              lastTime = null;
+              requestAnimationFrame(loop);
+            }
+          }
+        });
+      }
+
+      debugPanelEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-debug]');
+        if (!btn) return;
+        const action = btn.dataset.debug;
+
+        if (action === 'sleep') {
+          enterSleep();
+        } else if (action === 'wake') {
+          exitSleep();
+        } else if (action === 'run') {
+          currentState = 'run';
+          const runConfig = movementStates.find(s => s.name === 'run');
+          if (runConfig) {
+            const dir = Math.sign(velX) || (Math.random() < 0.5 ? -1 : 1);
+            velX = dir * (runConfig.speed + 1);
+          }
+        } else if (action === 'stop') {
+          currentState = 'stop';
+          velX = 0;
+        } else if (action === 'play') {
+          startPlatformMode();
+        }
+
+        updateStatusPanel();
+      });
+    }
+
+    initPosition();
+    setupDebugPanel();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
